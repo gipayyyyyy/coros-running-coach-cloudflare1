@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101827">
+<title>Dashboard Lari COROS 2026</title>
+<style>
+:root{--bg:#0b1220;--panel:#111c2e;--panel2:#17243a;--text:#edf3fb;--muted:#9caec4;--line:#293950;--accent:#70e1b4;--blue:#78aaff;--orange:#ffbd69}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0,#1b3150 0,transparent 32%),var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+.wrap{max-width:1200px;margin:auto;padding:24px}.top{display:flex;gap:20px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;margin:8px 0 24px}.eyebrow{color:var(--accent);font-size:12px;font-weight:800;letter-spacing:.13em;text-transform:uppercase}h1{font-size:clamp(27px,4vw,42px);line-height:1.1;margin:8px 0 10px}p{margin:0;color:var(--muted)}.stamp{border:1px solid var(--line);border-radius:14px;padding:10px 14px;color:var(--muted);font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.card{background:linear-gradient(150deg,rgba(23,36,58,.96),rgba(17,28,46,.96));border:1px solid var(--line);border-radius:18px;padding:18px;min-width:0}.metric-label{color:var(--muted);font-size:13px}.metric{font-size:clamp(24px,3vw,34px);font-weight:800;letter-spacing:-.04em;margin:7px 0 2px}.metric-sub{font-size:12px;color:var(--muted)}.section{margin-top:18px}.section-head{display:flex;align-items:end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}.section h2{font-size:19px;margin:0 0 4px}.charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.chart-card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;min-width:0}.chart-title{font-weight:750;margin-bottom:2px}.chart-sub{font-size:12px;color:var(--muted)}.chart{width:100%;height:auto;display:block;margin-top:12px;overflow:visible}.chart text{font-family:inherit;fill:var(--muted);font-size:11px}.chart .gridline{stroke:var(--line);stroke-width:1}.chart .line{fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.chart .dot{fill:var(--accent);stroke:var(--panel);stroke-width:2}.chart .bar{fill:var(--blue);rx:4}.controls{display:flex;gap:8px;flex-wrap:wrap}.controls button{background:var(--panel2);border:1px solid var(--line);border-radius:10px;color:var(--text);padding:8px 12px;cursor:pointer}.controls button.active{background:var(--accent);border-color:var(--accent);color:#082218;font-weight:800}.table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:620px}th,td{text-align:right;padding:12px 10px;border-bottom:1px solid var(--line);white-space:nowrap}th{font-size:12px;color:var(--muted);font-weight:650}th:first-child,td:first-child{text-align:left}td:first-child{font-weight:700}.tag{display:inline-block;padding:3px 8px;border-radius:999px;background:#20354a;color:var(--accent);font-size:11px}.note{font-size:12px;color:var(--muted);margin-top:12px}.footer{margin:24px 0 10px;color:var(--muted);font-size:12px}.empty{color:var(--muted);padding:20px}
+@media(max-width:850px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.charts{grid-template-columns:1fr}.wrap{padding:16px}.card,.chart-card{padding:15px}}
+@media(max-width:420px){.grid{gap:9px}.metric{font-size:24px}.card{padding:12px}.stamp{width:100%}}
+
+.daily-filters{align-items:flex-end;margin:12px 0 4px}
+.daily-filters label{display:block;min-width:140px}
+.daily-filters input,.daily-filters select{margin-top:4px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;color:var(--text);padding:9px 10px;max-width:100%;font:inherit}
+.daily-filters button{height:39px}
+#daily-chart .chart{min-height:180px}
+@media(max-width:600px){.daily-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.daily-filters label{min-width:0}.daily-filters input,.daily-filters select{width:100%}}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+ <div><div class="eyebrow">Personal running analytics</div><h1>Dashboard Lari COROS</h1><p>Ringkasan progres latihan · Januari–Oktober 2026</p></div>
+ <div class="stamp">Data terakhir: <strong>26 Okt 2026</strong><br>121 rekaman aktivitas · WITA (UTC+8)</div>
+</header>
+<section class="grid" id="metrics"></section>
+<section class="section">
+ <div class="section-head"><div><h2>Tren latihan</h2><p>Pilih metrik untuk melihat perubahannya dari bulan ke bulan.</p></div>
+ <div class="controls" id="metric-controls">
+  <button class="active" data-metric="km">Jarak</button><button data-metric="runs">Aktivitas</button><button data-metric="pace">Pace</button><button data-metric="hr">HR rata-rata</button>
+ </div></div>
+ <div class="charts">
+  <div class="chart-card"><div class="chart-title" id="trend-title">Jarak lari per bulan</div><div class="chart-sub" id="trend-sub">Total kilometer setiap bulan</div><div id="trend-chart"></div></div>
+  <div class="chart-card"><div class="chart-title">Durasi lari per bulan</div><div class="chart-sub">Total waktu berdasarkan rekaman aktivitas</div><div id="duration-chart"></div></div>
+ </div>
+</section>
+<section class="section chart-card">
+ <div class="section-head"><div><h2>Rekap bulanan</h2><p>Nilai pace dan HR adalah rata-rata per aktivitas.</p></div><span class="tag">2026 YTD</span></div>
+ <div class="table-wrap"><table><thead><tr><th>Bulan</th><th>Aktivitas</th><th>Jarak</th><th>Durasi</th><th>Pace</th><th>HR rata-rata</th><th>Long run</th></tr></thead><tbody id="monthly-table"></tbody></table></div>
+ <div class="note">*Oktober dihitung sampai 26 Oktober. Sesi yang tersimpan sebagai beberapa rekaman dihitung terpisah. Pace bulanan tidak berbobot jarak; gunakan sebagai gambaran umum, bukan perbandingan performa yang terkontrol.</div>
+</section>
+<section class="section chart-card">
+  <h2>Impor Aktivitas COROS</h2>
+  <p>Unggah file aktivitas untuk menambahkan sesi lari ke dashboard.</p>
+
+  <div class="controls" style="margin-top:14px">
+    <input
+      type="file"
+      id="coros-import-file"
+      accept=".tcx,.gpx,.json,.csv"
+    >
+    <button id="coros-import-button">Impor Aktivitas</button>
+  </div>
+
+  <p id="coros-import-status" class="note">
+    Format yang didukung: TCX, GPX, JSON, dan CSV.
+  </p>
+ 
+<section class="section chart-card" id="ai-coach-section">
+  <h2>AI Running Coach</h2>
+  <p>Claude Sonnet 4.6 · Analisis aktivitas COROS</p>
+
+  <label for="coach-access-code">Kode akses coach</label>
+  <input id="coach-access-code" type="password"
+         placeholder="Masukkan kode akses Netlify">
+
+  <div id="coach-chat-log"
+       style="margin:16px 0;max-height:420px;overflow:auto">
+    <p>Halo! Tanyakan tentang latihanmu atau jalankan evaluasi mingguan.</p>
+  </div>
+
+  <label for="coach-message">Pertanyaan</label>
+  <textarea id="coach-message" rows="3"
+    placeholder="Contoh: Evaluasi latihan saya dan rekomendasikan sesi berikutnya."></textarea>
+
+  <div class="controls" style="margin-top:12px">
+    <button id="coach-send">Kirim pertanyaan</button>
+    <button id="coach-weekly">Evaluasi mingguan</button>
+  </div>
+
+  <p id="coach-status" class="note">
+    AI akan menggunakan aktivitas yang tersedia di dashboard ini.
+  </p>
+</section>
+<section class="section chart-card" id="daily-section">
+ <div class="section-head">
+  <div><h2>Aktivitas harian</h2><p>Grafik jarak per hari dan daftar aktivitas lari individual.</p></div>
+  <span class="tag" id="daily-count">120 aktivitas</span>
+ </div>
+ <div class="controls daily-filters">
+  <label class="metric-label">Dari tanggal<br><input type="date" id="date-from" value="2026-01-01"></label>
+  <label class="metric-label">Sampai tanggal<br><input type="date" id="date-to" value="2026-10-26"></label>
+  <label class="metric-label">Jenis lari<br><select id="type-filter"><option value="all">Semua jenis</option><option value="Outdoor Run">Outdoor Run</option><option value="Indoor Run">Indoor Run</option></select></label>
+  <label class="metric-label">Cari nama/lokasi<br><input type="search" id="search-run" placeholder="Contoh: Tempo, Long Run"></label>
+  <button id="reset-daily">Reset filter</button>
+ </div>
+ <div class="grid" id="daily-metrics" style="margin-top:14px"></div>
+ <div class="chart-card" style="margin-top:14px">
+  <div class="chart-title">Jarak total per hari</div><div class="chart-sub">Aktivitas pada tanggal yang sama dijumlahkan. Hari tanpa aktivitas tidak ditampilkan.</div>
+  <div id="daily-chart"></div>
+ </div>
+ <div class="section-head" style="margin-top:18px"><div><h2>Daftar sesi lari</h2><p id="daily-table-summary">Urut dari tanggal terbaru.</p></div></div>
+ <div class="table-wrap"><table style="min-width:800px"><thead><tr><th>Tanggal</th><th>Aktivitas</th><th>Jenis</th><th>Jarak</th><th>Durasi</th><th>Pace</th><th>HR rata-rata</th></tr></thead><tbody id="daily-table"></tbody></table></div>
+ <div class="controls" style="margin-top:12px;align-items:center;justify-content:space-between">
+  <span class="metric-sub" id="page-info">Halaman 1</span><div class="controls"><button id="prev-page">Sebelumnya</button><button id="next-page">Berikutnya</button></div>
+ </div>
+ <div class="note">Catatan: beberapa rekaman COROS tampak sebagai segmen dengan jarak/durasi kosong atau nol; rekaman tersebut tetap ditampilkan tetapi tidak menambah total jarak. HR ditampilkan bila tersedia. Data aktivitas ini ditarik pada 26 Oktober 2026 dan belum tersinkron otomatis.</div>
+</section>
+
+<div class="footer">Dashboard mandiri berbasis HTML. Angka merupakan rekap aktivitas yang berhasil ditarik dari COROS, bukan data sensor mentah. Untuk pembaruan otomatis diperlukan integrasi/sinkronisasi data tambahan.</div>
+</div>
+<script>
+const data=[
+{m:"Jan",full:"Januari",runs:16,km:96.4,hours:12.9,pace:486,hr:148,longest:9.3},
+{m:"Feb",full:"Februari",runs:12,km:77.0,hours:10.5,pace:491,hr:149,longest:10.0},
+{m:"Mar",full:"Maret",runs:7,km:40.0,hours:5.2,pace:452,hr:141,longest:7.9},
+{m:"Apr",full:"April",runs:16,km:113.9,hours:15.5,pace:487,hr:153,longest:14.0},
+{m:"Mei",full:"Mei",runs:16,km:168.9,hours:22.3,pace:476,hr:147,longest:22.0},
+{m:"Jun",full:"Juni",runs:9,km:87.2,hours:12.2,pace:476,hr:150,longest:38.3},
+{m:"Jul",full:"Juli",runs:13,km:88.5,hours:11.3,pace:476,hr:153,longest:12.0},
+{m:"Agu",full:"Agustus",runs:12,km:82.6,hours:10.6,pace:459,hr:151,longest:13.0},
+{m:"Sep",full:"September",runs:9,km:80.3,hours:10.3,pace:456,hr:156,longest:15.0},
+{m:"Okt*",full:"Oktober*",runs:11,km:74.8,hours:9.8,pace:506,hr:149,longest:21.6}
+];
+const sum=k=>data.reduce((s,d)=>s+d[k],0);
+const fmt=(n,d=1)=>n.toLocaleString('id-ID',{minimumFractionDigits:d,maximumFractionDigits:d});
+const paceFmt=s=>`${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,'0')}/km`;
+document.getElementById('metrics').innerHTML=[
+['Total jarak',`${fmt(sum('km'))} km`,'10 bulan kalender'],
+['Aktivitas',`${sum('runs')}`,'Rekaman lari'],
+['Total durasi',`${fmt(sum('hours'))} jam`,'Akumulasi durasi'],
+['Puncak volume',`${fmt(Math.max(...data.map(d=>d.km)))} km`,'Mei 2026']
+].map(x=>`<div class="card"><div class="metric-label">${x[0]}</div><div class="metric">${x[1]}</div><div class="metric-sub">${x[2]}</div></div>`).join('');
+function svgChart(key, opts={}){
+ const W=560,H=260,L=44,R=14,T=16,B=36,innerW=W-L-R,innerH=H-T-B;
+ const vals=data.map(d=>d[key]), max=opts.max||Math.ceil(Math.max(...vals)*1.15/10)*10, min=opts.min||0;
+ const x=i=>L+i*innerW/(data.length-1), y=v=>T+innerH-(v-min)/(max-min)*innerH;
+ let s=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${opts.aria||'Grafik bulanan'}">`;
+ for(let i=0;i<=4;i++){let v=min+(max-min)*i/4, yy=y(v);s+=`<line class="gridline" x1="${L}" y1="${yy}" x2="${W-R}" y2="${yy}"/><text x="${L-8}" y="${yy+4}" text-anchor="end">${opts.tick?opts.tick(v):Math.round(v)}</text>`}
+ if(opts.bars){let bw=innerW/data.length*.56;data.forEach((d,i)=>{let yy=y(d[key]),xx=L+(i+.5)*innerW/data.length;s+=`<rect class="bar" x="${xx-bw/2}" y="${yy}" width="${bw}" height="${T+innerH-yy}"><title>${d.full}: ${opts.tip(d[key])}</title></rect><text x="${xx}" y="${H-12}" text-anchor="middle">${d.m}</text>`})}
+ else {let pts=data.map((d,i)=>`${x(i)},${y(d[key])}`).join(' ');s+=`<polyline class="line" points="${pts}"/>`;data.forEach((d,i)=>{s+=`<circle class="dot" cx="${x(i)}" cy="${y(d[key])}" r="4"><title>${d.full}: ${opts.tip(d[key])}</title></circle><text x="${x(i)}" y="${H-12}" text-anchor="middle">${d.m}</text>`})}
+ return s+'</svg>';
+}
+function renderTrend(key){
+ let config={
+ km:{title:'Jarak lari per bulan',sub:'Total kilometer setiap bulan',field:'km',min:0,max:180,tick:v=>Math.round(v),tip:v=>fmt(v)+' km'},
+ runs:{title:'Jumlah aktivitas per bulan',sub:'Jumlah rekaman lari setiap bulan',field:'runs',min:0,max:20,tick:v=>Math.round(v),tip:v=>v+' aktivitas'},
+ pace:{title:'Pace rata-rata per bulan',sub:'Lebih rendah berarti lebih cepat',field:'pace',min:420,max:540,tick:v=>`${Math.floor(v/60)}:${String(Math.round(v%60)).padStart(2,'0')}`,tip:v=>paceFmt(v)},
+ hr:{title:'HR rata-rata per bulan',sub:'Rata-rata HR aktivitas yang memiliki data',field:'hr',min:130,max:170,tick:v=>Math.round(v),tip:v=>Math.round(v)+' bpm'}
+ }[key];
+ document.getElementById('trend-title').textContent=config.title;
+ document.getElementById('trend-sub').textContent=config.sub;
+ document.getElementById('trend-chart').innerHTML=svgChart(config.field,{min:config.min,max:config.max,tick:config.tick,tip:config.tip,aria:config.title});
+}
+document.getElementById('duration-chart').innerHTML=svgChart('hours',{bars:true,min:0,max:25,tick:v=>Math.round(v),tip:v=>fmt(v)+' jam',aria:'Durasi lari per bulan'});
+document.getElementById('monthly-table').innerHTML=data.map(d=>`<tr><td>${d.full}</td><td>${d.runs}</td><td>${fmt(d.km)} km</td><td>${fmt(d.hours)} jam</td><td>${paceFmt(d.pace)}</td><td>${d.hr} bpm</td><td>${fmt(d.longest)} km</td></tr>`).join('');
+document.getElementById('metric-controls').addEventListener('click',e=>{const b=e.target.closest('button[data-metric]');if(!b)return;document.querySelectorAll('#metric-controls button').forEach(x=>x.classList.toggle('active',x===b));renderTrend(b.dataset.metric)});
+renderTrend('km');
+</script>
+
+<script>
+const dailyActivities = [{"date":"2026-01-02","type":"Outdoor Run","name":"Outdoor Run","km":6.02,"duration":"50:54","pace":"8:27 /km","hr":148,"start":1767347110},{"date":"2026-01-03","type":"Outdoor Run","name":"Outdoor Run","km":7.34,"duration":"1:00:15","pace":"8:13 /km","hr":148,"start":1767431144},{"date":"2026-01-06","type":"Outdoor Run","name":"Outdoor Run","km":7.58,"duration":"1:00:23","pace":"7:58 /km","hr":146,"start":1767692865},{"date":"2026-01-08","type":"Outdoor Run","name":"Outdoor Run","km":5.2,"duration":"41:12","pace":"7:55 /km","hr":149,"start":1767863974},{"date":"2026-01-08","type":"Outdoor Run","name":"Outdoor Run","km":1.64,"duration":"14:03","pace":"8:34 /km","hr":150,"start":1767866667},{"date":"2026-01-10","type":"Outdoor Run","name":"Outdoor Run","km":7.49,"duration":"1:00:03","pace":"8:01 /km","hr":147,"start":1768036133},{"date":"2026-01-13","type":"Outdoor Run","name":"Outdoor Run","km":5.77,"duration":"45:06","pace":"7:49 /km","hr":150,"start":1768296467},{"date":"2026-01-14","type":"Outdoor Run","name":"Outdoor Run","km":7.17,"duration":"59:59","pace":"8:22 /km","hr":151,"start":1768383546},{"date":"2026-01-16","type":"Outdoor Run","name":"Outdoor Run","km":6.44,"duration":"50:01","pace":"7:46 /km","hr":144,"start":1768564582},{"date":"2026-01-18","type":"Outdoor Run","name":"Outdoor Run","km":9.33,"duration":"1:14:49","pace":"8:01 /km","hr":154,"start":1768725933},{"date":"2026-01-20","type":"Outdoor Run","name":"Outdoor Run","km":6.39,"duration":"49:59","pace":"7:49 /km","hr":145,"start":1768909888},{"date":"2026-01-22","type":"Outdoor Run","name":"Outdoor Run","km":5.81,"duration":"45:06","pace":"7:46 /km","hr":145,"start":1769082988},{"date":"2026-01-24","type":"Outdoor Run","name":"Outdoor Run","km":7.56,"duration":"1:00:01","pace":"7:56 /km","hr":153,"start":1769246259},{"date":"2026-01-27","type":"Outdoor Run","name":"Central Kalimantan Run","km":5.09,"duration":"40:01","pace":"7:52 /km","hr":150,"start":1769514318},{"date":"2026-01-27","type":"Outdoor Run","name":"Central Kalimantan Run","km":1.28,"duration":"11:47","pace":"9:12 /km","hr":140,"start":1769516764},{"date":"2026-01-29","type":"Outdoor Run","name":"Central Kalimantan Run","km":6.3,"duration":"50:12","pace":"7:58 /km","hr":146,"start":1769687357},{"date":"2026-02-01","type":"Outdoor Run","name":"Central Kalimantan Run","km":7.75,"duration":"1:00:01","pace":"7:45 /km","hr":154,"start":1769897427},{"date":"2026-02-03","type":"Outdoor Run","name":"Central Kalimantan Run","km":6.83,"duration":"53:25","pace":"7:49 /km","hr":156,"start":1770119915},{"date":"2026-02-05","type":"Outdoor Run","name":"Central Kalimantan Run","km":6.78,"duration":"50:05","pace":"7:23 /km","hr":155,"start":1770292644},{"date":"2026-02-06","type":"Outdoor Run","name":"Central Kalimantan Run","km":5.48,"duration":"43:39","pace":"7:58 /km","hr":143,"start":1770378764},{"date":"2026-02-07","type":"Outdoor Run","name":"Central Kalimantan Run","km":10.02,"duration":"1:24:26","pace":"8:26 /km","hr":143,"start":1770416903},{"date":"2026-02-10","type":"Outdoor Run","name":"Central Kalimantan Run","km":7.19,"duration":"58:06","pace":"8:05 /km","hr":147,"start":1770724251},{"date":"2026-02-12","type":"Outdoor Run","name":"Central Kalimantan Run","km":6.07,"duration":"52:46","pace":"8:42 /km","hr":141,"start":1770897389},{"date":"2026-02-17","type":"Outdoor Run","name":"Central Kalimantan Run","km":5.62,"duration":"45:01","pace":"8:01 /km","hr":156,"start":1771318256},{"date":"2026-02-20","type":"Outdoor Run","name":"Central Kalimantan Run","km":4.4,"duration":"40:01","pace":"9:06 /km","hr":152,"start":1771580275},{"date":"2026-02-21","type":"Outdoor Run","name":"Central Kalimantan Run","km":5.43,"duration":"45:01","pace":"8:17 /km","hr":148,"start":1771664423},{"date":"2026-02-24","type":"Outdoor Run","name":"Central Kalimantan Run","km":6.2,"duration":"50:04","pace":"8:05 /km","hr":143,"start":1771925441},{"date":"2026-02-27","type":"Outdoor Run","name":"East Kalimantan Run","km":5.22,"duration":"45:01","pace":"8:37 /km","hr":150,"start":1772183692},{"date":"2026-03-01","type":"Indoor Run","name":"Indoor Run","km":5.04,"duration":"38:11","pace":"7:35 /km","hr":145,"start":1772368368},{"date":"2026-03-03","type":"Indoor Run","name":"Indoor Run","km":7.34,"duration":"50:03","pace":"6:49 /km","hr":148,"start":1772538407},{"date":"2026-03-05","type":"Outdoor Run","name":"East Kalimantan Run","km":7.9,"duration":"1:02:11","pace":"7:52 /km","hr":153,"start":1772713895},{"date":"2026-03-07","type":"Outdoor Run","name":"East Kalimantan Run","km":6.43,"duration":"50:03","pace":"7:47 /km","hr":154,"start":1772873118},{"date":"2026-03-10","type":"Outdoor Run","name":"East Kalimantan Run","km":6.16,"duration":"45:44","pace":"7:25 /km","hr":150,"start":1773134590},{"date":"2026-03-12","type":"Outdoor Run","name":"East Kalimantan Run","km":7.01,"duration":"54:25","pace":"7:46 /km","hr":152,"start":1773305539},{"date":"2026-04-01","type":"Outdoor Run","name":"Central Kalimantan Run","km":6.0,"duration":"49:50","pace":"8:18 /km","hr":156,"start":1775036107},{"date":"2026-04-03","type":"Outdoor Run","name":"Central Kalimantan Run","km":3.73,"duration":"30:00","pace":"8:03 /km","hr":161,"start":1775208700},{"date":"2026-04-04","type":"Indoor Run","name":"Indoor Run","km":5.01,"duration":"33:57","pace":"6:47 /km","hr":152,"start":1775271288},{"date":"2026-04-05","type":"Outdoor Run","name":"Central Kalimantan Run","km":6.17,"duration":"54:05","pace":"8:46 /km","hr":157,"start":1775378588},{"date":"2026-04-05","type":"Outdoor Run","name":"Central Kalimantan Run","km":3.0,"duration":"25:33","pace":"8:31 /km","hr":161,"start":1775382116},{"date":"2026-04-07","type":"Outdoor Run","name":"Central Kalimantan Run","km":6.15,"duration":"50:05","pace":"8:09 /km","hr":150,"start":1775561521},{"date":"2026-04-10","type":"Outdoor Run","name":"Samarinda Run","km":6.21,"duration":"50:02","pace":"8:03 /km","hr":156,"start":1775810451},{"date":"2026-04-11","type":"Outdoor Run","name":"Samarinda Run","km":9.01,"duration":"1:13:11","pace":"8:07 /km","hr":154,"start":1775898423},{"date":"2026-04-14","type":"Outdoor Run","name":"East Kalimantan Run","km":8.5,"duration":"1:11:28","pace":"8:24 /km","hr":150,"start":1776163415},{"date":"2026-04-16","type":"Outdoor Run","name":"East Kalimantan Run","km":8.21,"duration":"1:07:28","pace":"8:13 /km","hr":151,"start":1776338476},{"date":"2026-04-19","type":"Outdoor Run","name":"Central Kalimantan Run","km":14.01,"duration":"2:00:00","pace":"8:34 /km","hr":161,"start":1776588695},{"date":"2026-04-20","type":"Outdoor Run","name":"Central Kalimantan Run","km":6.57,"duration":"57:08","pace":"8:42 /km","hr":147,"start":1776676728},{"date":"2026-04-22","type":"Outdoor Run","name":"Central Kalimantan Run","km":6.06,"duration":"45:57","pace":"7:35 /km","hr":146,"start":1776858267},{"date":"2026-04-25","type":"Outdoor Run","name":"Central Kalimantan Run","km":10.02,"duration":"1:22:02","pace":"8:11 /km","hr":150,"start":1777068805},{"date":"2026-04-28","type":"Outdoor Run","name":"Central Kalimantan Run","km":7.85,"duration":"1:00:06","pace":"7:39 /km","hr":152,"start":1777374688},{"date":"2026-04-30","type":"Outdoor Run","name":"Central Kalimantan Run","km":7.38,"duration":"57:06","pace":"7:44 /km","hr":147,"start":1777549105},{"date":"2026-05-02","type":"Outdoor Run","name":"Central Kalimantan Run","km":16.01,"duration":"2:12:14","pace":"8:16 /km","hr":150,"start":1777675165},{"date":"2026-05-05","type":"Outdoor Run","name":"Central Kalimantan Run","km":10.0,"duration":"1:24:51","pace":"8:29 /km","hr":147,"start":1777970548},{"date":"2026-05-07","type":"Outdoor Run","name":"Central Kalimantan Run","km":6.23,"duration":"51:39","pace":"8:17 /km","hr":147,"start":1778146087},{"date":"2026-05-09","type":"Outdoor Run","name":"Central Kalimantan Run","km":21.13,"duration":"2:52:00","pace":"8:08 /km","hr":147,"start":1778277634},{"date":"2026-05-10","type":"Indoor Run","name":"Indoor Run","km":1.7,"duration":"15:46","pace":"9:16 /km","hr":127,"start":1778392522},{"date":"2026-05-12","type":"Outdoor Run","name":"Central Kalimantan Run","km":10.01,"duration":"1:16:52","pace":"7:41 /km","hr":153,"start":1778585663},{"date":"2026-05-14","type":"Outdoor Run","name":"Central Kalimantan Run","km":6.54,"duration":"51:58","pace":"7:57 /km","hr":146,"start":1778758250},{"date":"2026-05-16","type":"Outdoor Run","name":"Central Kalimantan Run","km":22.03,"duration":"2:58:46","pace":"8:07 /km","hr":147,"start":1778883378},{"date":"2026-05-19","type":"Outdoor Run","name":"Central Kalimantan Run","km":10.01,"duration":"1:14:43","pace":"7:28 /km","hr":149,"start":1779191190},{"date":"2026-05-20","type":"Outdoor Run","name":"East Barito Regency Run","km":6.71,"duration":"48:02","pace":"7:10 /km","hr":149,"start":1779278609},{"date":"2026-05-21","type":"Outdoor Run","name":"Central Kalimantan Run","km":6.32,"duration":"46:25","pace":"7:21 /km","hr":147,"start":1779364345},{"date":"2026-05-23","type":"Outdoor Run","name":"Central Kalimantan Run","km":20.08,"duration":"2:43:56","pace":"8:10 /km","hr":146,"start":1779486566},{"date":"2026-05-23","type":"Outdoor Run","name":"Central Kalimantan Run","km":1.01,"duration":"8:37","pace":"8:32 /km","hr":143,"start":1779497063},{"date":"2026-05-27","type":"Outdoor Run","name":"Central Kalimantan Run","km":9.0,"duration":"1:05:47","pace":"7:19 /km","hr":155,"start":1779871984},{"date":"2026-05-28","type":"Outdoor Run","name":"Central Kalimantan Run","km":8.06,"duration":"58:45","pace":"7:17 /km","hr":149,"start":1779968992},{"date":"2026-05-30","type":"Outdoor Run","name":"Central Kalimantan Run","km":14.06,"duration":"1:45:00","pace":"7:28 /km","hr":142,"start":1780093103},{"date":"2026-06-02","type":"Outdoor Run","name":"Central Kalimantan Run","km":8.35,"duration":"1:00:00","pace":"7:11 /km","hr":156,"start":1780392526},{"date":"2026-06-04","type":"Outdoor Run","name":"Central Kalimantan Run","km":0.0,"duration":"","pace":"9:52 /km","hr":151,"start":1780569540},{"date":"2026-06-06","type":"Outdoor Run","name":"Central Kalimantan Run","km":10.84,"duration":"1:30:00","pace":"8:18 /km","hr":154,"start":1780734600},{"date":"2026-06-09","type":"Outdoor Run","name":"Balikpapan Run","km":5.01,"duration":"36:46","pace":"7:20 /km","hr":146,"start":1781003341},{"date":"2026-06-14","type":"Outdoor Run","name":"Central Jakarta Run","km":38.28,"duration":"6:04:56","pace":"9:32 /km","hr":144,"start":1781385001},{"date":"2026-06-21","type":"Outdoor Run","name":"Balikpapan Run","km":5.01,"duration":"38:08","pace":"7:37 /km","hr":141,"start":1781994519},{"date":"2026-06-23","type":"Outdoor Run","name":"Running Fitness Test","km":6.28,"duration":"44:01","pace":"7:01 /km","hr":155,"start":1782167427},{"date":"2026-06-26","type":"Outdoor Run","name":"Tabalong Run","km":6.46,"duration":"45:04","pace":"6:58 /km","hr":151,"start":1782425009},{"date":"2026-06-30","type":"Outdoor Run","name":"Easy Run with 15-Second Strides","km":6.01,"duration":"45:40","pace":"7:36 /km","hr":151,"start":1782820191},{"date":"2026-07-04","type":"Outdoor Run","name":"Central Kalimantan Run","km":2.58,"duration":"21:32","pace":"8:20 /km","hr":171,"start":1783119761},{"date":"2026-07-04","type":"Outdoor Run","name":"Central Kalimantan Run","km":0.0,"duration":"","pace":"8:11 /km","hr":137,"start":1783121231},{"date":"2026-07-06","type":"Outdoor Run","name":"Central Kalimantan Run","km":8.4,"duration":"1:00:01","pace":"7:09 /km","hr":162,"start":1783337619},{"date":"2026-07-09","type":"Outdoor Run","name":"Easy + Stride","km":7.8,"duration":"56:00","pace":"7:11 /km","hr":146,"start":1783597365},{"date":"2026-07-11","type":"Outdoor Run","name":"Central Kalimantan Run","km":12.0,"duration":"1:28:40","pace":"7:23 /km","hr":150,"start":1783723483},{"date":"2026-07-13","type":"Outdoor Run","name":"Tempo","km":9.09,"duration":"1:08:00","pace":"7:29 /km","hr":149,"start":1783942846},{"date":"2026-07-18","type":"Outdoor Run","name":"Easy Run with 15-Second Strides","km":7.69,"duration":"1:00:02","pace":"7:48 /km","hr":155,"start":1784366644},{"date":"2026-07-20","type":"Outdoor Run","name":"Easy Run with 200m Strides","km":7.4,"duration":"1:00:38","pace":"8:12 /km","hr":147,"start":1784547149},{"date":"2026-07-23","type":"Outdoor Run","name":"Easy Run with 15-Second Strides","km":6.78,"duration":"57:00","pace":"8:24 /km","hr":149,"start":1784807304},{"date":"2026-07-26","type":"Outdoor Run","name":"10K Time Trial","km":10.0,"duration":"1:05:09","pace":"6:31 /km","hr":166,"start":1785016640},{"date":"2026-07-28","type":"Outdoor Run","name":"Easy Run with 15-Second Strides","km":7.05,"duration":"55:57","pace":"7:56 /km","hr":153,"start":1785239293},{"date":"2026-07-28","type":"Outdoor Run","name":"Central Kalimantan Run","km":0.0,"duration":"","pace":"10:06 /km","hr":151,"start":1785242712},{"date":"2026-07-30","type":"Outdoor Run","name":"Threshold Intervals","km":8.66,"duration":"1:13:06","pace":"8:26 /km","hr":149,"start":1785412550},{"date":"2026-08-05","type":"Outdoor Run","name":"Easy Run with 15-Second Strides","km":8.03,"duration":"1:07:00","pace":"8:21 /km","hr":150,"start":1785928753},{"date":"2026-08-08","type":"Outdoor Run","name":"Easy Run with 15-Second Strides","km":11.69,"duration":"1:29:11","pace":"7:38 /km","hr":152,"start":1786145122},{"date":"2026-08-11","type":"Outdoor Run","name":"Easy Run with 15-Second Strides","km":3.17,"duration":"24:11","pace":"7:38 /km","hr":137,"start":1786441989},{"date":"2026-08-15","type":"Outdoor Run","name":"South Barito Regency Run","km":5.06,"duration":"38:15","pace":"7:34 /km","hr":174,"start":1786753878},{"date":"2026-08-19","type":"Outdoor Run","name":"HM Introduction","km":4.46,"duration":"35:47","pace":"8:01 /km","hr":157,"start":1787131967},{"date":"2026-08-20","type":"Indoor Run","name":"Indoor Run","km":5.0,"duration":"30:42","pace":"6:08 /km","hr":151,"start":1787219125},{"date":"2026-08-22","type":"Outdoor Run","name":"Central Kalimantan Run","km":10.0,"duration":"1:15:25","pace":"7:32 /km","hr":150,"start":1787354566},{"date":"2026-08-24","type":"Outdoor Run","name":"Easy Run with 15-Second Strides","km":7.16,"duration":"57:00","pace":"7:58 /km","hr":148,"start":1787571386},{"date":"2026-08-26","type":"Outdoor Run","name":"HM Pace","km":7.18,"duration":"52:54","pace":"7:22 /km","hr":155,"start":1787744644},{"date":"2026-08-27","type":"Outdoor Run","name":"Recovery","km":4.66,"duration":"40:00","pace":"8:35 /km","hr":141,"start":1787831110},{"date":"2026-08-29","type":"Outdoor Run","name":"Central Kalimantan Run","km":13.01,"duration":"1:44:47","pace":"8:03 /km","hr":151,"start":1787960157},{"date":"2026-08-31","type":"Indoor Run","name":"Indoor Run","km":3.19,"duration":"22:13","pace":"6:58 /km","hr":149,"start":1788177320},{"date":"2026-09-02","type":"Outdoor Run","name":"Threshold","km":7.92,"duration":"1:00:08","pace":"7:35 /km","hr":153,"start":1788349233},{"date":"2026-09-05","type":"Outdoor Run","name":"Long Run","km":9.91,"duration":"1:23:53","pace":"8:28 /km","hr":160,"start":1788597928},{"date":"2026-09-08","type":"Outdoor Run","name":"Easy Run with 15-Second Strides","km":7.78,"duration":"1:00:03","pace":"7:43 /km","hr":154,"start":1788867266},{"date":"2026-09-10","type":"Outdoor Run","name":"Threshold Intervals","km":8.59,"duration":"1:03:03","pace":"7:20 /km","hr":156,"start":1789040415},{"date":"2026-09-12","type":"Outdoor Run","name":"Progression Run","km":15.04,"duration":"1:57:13","pace":"7:48 /km","hr":155,"start":1789169556},{"date":"2026-09-20","type":"Indoor Run","name":"Indoor Run","km":5.0,"duration":"32:50","pace":"6:34 /km","hr":147,"start":1789905118},{"date":"2026-09-21","type":"Outdoor Run","name":"Threshold Intervals","km":8.19,"duration":"1:04:17","pace":"7:51 /km","hr":156,"start":1789990467},{"date":"2026-09-24","type":"Outdoor Run","name":"Central Kalimantan Run","km":10.44,"duration":"1:20:01","pace":"7:40 /km","hr":160,"start":1790249973},{"date":"2026-09-29","type":"Outdoor Run","name":"East Kalimantan Run","km":7.42,"duration":"55:21","pace":"7:27 /km","hr":163,"start":1790679915},{"date":"2026-10-01","type":"Outdoor Run","name":"Balikpapan Run","km":6.52,"duration":"55:26","pace":"8:30 /km","hr":141,"start":1790808349},{"date":"2026-10-03","type":"Outdoor Run","name":"Balikpapan Run","km":10.01,"duration":"1:18:08","pace":"7:49 /km","hr":149,"start":1790980643},{"date":"2026-10-04","type":"Outdoor Run","name":"East Kalimantan Run","km":7.01,"duration":"47:07","pace":"6:43 /km","hr":153,"start":1791066091},{"date":"2026-10-06","type":"Outdoor Run","name":"East Kalimantan Run","km":7.78,"duration":"1:00:01","pace":"7:43 /km","hr":153,"start":1791284172},{"date":"2026-10-10","type":"Outdoor Run","name":"Balikpapan Run","km":3.01,"duration":"25:36","pace":"8:30 /km","hr":130,"start":1791587228},{"date":"2026-10-11","type":"Outdoor Run","name":"Balikpapan Run","km":21.57,"duration":"2:56:59","pace":"8:12 /km","hr":166,"start":1791667189},{"date":"2026-10-17","type":"Outdoor Run","name":"Central Kalimantan Run","km":1.22,"duration":"10:03","pace":"8:15 /km","hr":139,"start":1792237184},{"date":"2026-10-17","type":"Outdoor Run","name":"Time Trial","km":3.92,"duration":"25:00","pace":"6:22 /km","hr":170,"start":1792237895},{"date":"2026-10-17","type":"Outdoor Run","name":"Central Kalimantan Run","km":0.0,"duration":"","pace":"15:14 /km","hr":141,"start":1792239546},{"date":"2026-10-19","type":"Outdoor Run","name":"Easy Run + Stride","km":6.42,"duration":"50:00","pace":"7:48 /km","hr":152,"start":1792409447},{"date":"2026-10-22","type":"Outdoor Run","name":"Easy Run + Stride","km":6.51,"duration":"50:00","pace":"7:41 /km","hr":145,"start":1792668824}];
+const PAGE_SIZE = 20;
+let dailyPage = 1;
+const dateFrom = document.getElementById('date-from');
+const dateTo = document.getElementById('date-to');
+const typeFilter = document.getElementById('type-filter');
+const searchRun = document.getElementById('search-run');
+const idFmt = n => Number(n).toLocaleString('id-ID',{maximumFractionDigits:2});
+const durSeconds = d => { if(!d) return 0; const p=d.split(':').map(Number); return p.length===3?p[0]*3600+p[1]*60+p[2]:p[0]*60+p[1]; };
+const secPace = p => { const m=(p||'').match(/(\d+):(\d+)/); return m?Number(m[1])*60+Number(m[2]):null; };
+const paceText = s => s==null?'—':`${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,'0')}/km`;
+const dateText = d => new Date(d+'T12:00:00').toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'});
+function filteredDaily(){
+ const from=dateFrom.value||'0000-01-01', to=dateTo.value||'9999-12-31', type=typeFilter.value, q=searchRun.value.trim().toLowerCase();
+ return dailyActivities.filter(a=>a.date>=from&&a.date<=to&&(type==='all'||a.type===type)&&(!q||`${a.name} ${a.type}`.toLowerCase().includes(q)));
+}
+function renderDaily(){
+ const filtered=filteredDaily().sort((a,b)=>b.date.localeCompare(a.date)||b.start-a.start);
+ const valid=filtered.filter(a=>a.km>0);
+ const totalKm=valid.reduce((s,a)=>s+a.km,0);
+ const totalSec=filtered.reduce((s,a)=>s+durSeconds(a.duration),0);
+ const hrs=filtered.filter(a=>a.hr!=null).map(a=>a.hr);
+ const days=new Set(valid.map(a=>a.date));
+ const avgPace=totalKm>0&&totalSec>0?Math.round(totalSec/totalKm):null;
+ document.getElementById('daily-count').textContent=`${filtered.length} aktivitas`;
+ document.getElementById('daily-metrics').innerHTML=[
+  ['Total jarak',`${idFmt(totalKm)} km`,`${days.size} hari dengan jarak valid`],
+  ['Jumlah aktivitas',filtered.length,'Termasuk rekaman segmen'],
+  ['Total durasi',`${Math.floor(totalSec/3600)}j ${Math.floor((totalSec%3600)/60)}m`,'Akumulasi durasi yang tersedia'],
+  ['HR rata-rata',hrs.length?`${Math.round(hrs.reduce((s,x)=>s+x,0)/hrs.length)} bpm`:'—',`${hrs.length} rekaman dengan HR`]
+ ].map(x=>`<div class="card"><div class="metric-label">${x[0]}</div><div class="metric">${x[1]}</div><div class="metric-sub">${x[2]}</div></div>`).join('');
+ renderDailyChart(valid);
+ const pages=Math.max(1,Math.ceil(filtered.length/PAGE_SIZE));
+ dailyPage=Math.min(dailyPage,pages);
+ const start=(dailyPage-1)*PAGE_SIZE;
+ const visible=filtered.slice(start,start+PAGE_SIZE);
+ document.getElementById('daily-table').innerHTML=visible.length?visible.map(a=>`<tr><td>${dateText(a.date)}</td><td>${escapeHtml(a.name||a.type)}</td><td><span class="tag">${escapeHtml(a.type==='Indoor Run'?'Indoor':'Outdoor')}</span></td><td>${a.km>0?idFmt(a.km)+' km':'—'}</td><td>${a.duration||'—'}</td><td>${a.pace||'—'}</td><td>${a.hr!=null?a.hr+' bpm':'—'}</td></tr>`).join(''):`<tr><td colspan="7" class="empty">Tidak ada aktivitas pada filter ini.</td></tr>`;
+ document.getElementById('daily-table-summary').textContent=`Menampilkan ${filtered.length?start+1:0}–${Math.min(start+PAGE_SIZE,filtered.length)} dari ${filtered.length} aktivitas.`;
+ document.getElementById('page-info').textContent=`Halaman ${dailyPage} dari ${pages}`;
+ document.getElementById('prev-page').disabled=dailyPage<=1;
+ document.getElementById('next-page').disabled=dailyPage>=pages;
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function renderDailyChart(activities){
+ const byDate={}; activities.forEach(a=>byDate[a.date]=(byDate[a.date]||0)+a.km);
+ const points=Object.entries(byDate).sort((a,b)=>a[0].localeCompare(b[0]));
+ const root=document.getElementById('daily-chart');
+ if(!points.length){root.innerHTML='<div class="empty">Tidak ada data jarak pada rentang tanggal ini.</div>';return;}
+ const W=900,H=260,L=48,R=18,T=18,B=46,iw=W-L-R,ih=H-T-B;
+ const max=Math.max(5,Math.ceil(Math.max(...points.map(p=>p[1]))/5)*5);
+ const x=i=>L+(points.length===1?iw/2:i*iw/(points.length-1));
+ const y=v=>T+ih-(v/max)*ih;
+ let s=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Jarak lari harian">`;
+ for(let i=0;i<=4;i++){const v=max*i/4,yy=y(v);s+=`<line class="gridline" x1="${L}" y1="${yy}" x2="${W-R}" y2="${yy}"/><text x="${L-8}" y="${yy+4}" text-anchor="end">${v.toFixed(0)} km</text>`;}
+ if(points.length===1){s+=`<circle class="dot" cx="${x(0)}" cy="${y(points[0][1])}" r="5"/>`;}
+ else{s+=`<polyline class="line" points="${points.map((p,i)=>`${x(i)},${y(p[1])}`).join(' ')}"/>`;}
+ points.forEach((p,i)=>{s+=`<circle class="dot" cx="${x(i)}" cy="${y(p[1])}" r="3"><title>${dateText(p[0])}: ${idFmt(p[1])} km</title></circle>`;if(i===0||i===points.length-1||i%Math.ceil(points.length/9)===0)s+=`<text x="${x(i)}" y="${H-14}" text-anchor="middle">${p[0].slice(5)}</text>`;});
+ root.innerHTML=s+'</svg>';
+}
+[dateFrom,dateTo,typeFilter,searchRun].forEach(el=>el.addEventListener(el===searchRun?'input':'change',()=>{dailyPage=1;renderDaily();}));
+document.getElementById('reset-daily').addEventListener('click',()=>{dateFrom.value='2026-01-01';dateTo.value='2026-10-26';typeFilter.value='all';searchRun.value='';dailyPage=1;renderDaily();});
+document.getElementById('prev-page').addEventListener('click',()=>{dailyPage=Math.max(1,dailyPage-1);renderDaily();});
+document.getElementById('next-page').addEventListener('click',()=>{dailyPage++;renderDaily();});
+renderDaily();
+</script>
+<script>
+(() => {
+  const input = document.getElementById("coros-import-file");
+  const button = document.getElementById("coros-import-button");
+  const status = document.getElementById("coros-import-status");
+  const STORAGE_KEY = "coros-manual-import-v1";
+
+  // Muat kembali aktivitas yang pernah diimpor di browser ini.
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    if (Array.isArray(saved)) dailyActivities.push(...saved);
+  } catch (error) {
+    console.error("Gagal memuat impor tersimpan:", error);
+  }
+
+  renderDaily();
+
+  function parseTCX(text) {
+    const xml = new DOMParser().parseFromString(text, "application/xml");
+    if (xml.querySelector("parsererror")) throw new Error("File TCX tidak valid.");
+
+    return [...xml.querySelectorAll("Activity")].map((activity, i) => {
+      const points = [...activity.querySelectorAll("Trackpoint")];
+      const times = points.map(p => Date.parse(p.querySelector("Time")?.textContent || ""))
+        .filter(Number.isFinite);
+      const distances = points.map(p => Number(p.querySelector("DistanceMeters")?.textContent))
+        .filter(Number.isFinite);
+      const hrs = points.map(p => Number(p.querySelector("HeartRateBpm Value")?.textContent))
+        .filter(n => Number.isFinite(n) && n > 0);
+
+      const firstTime = times.length ? Math.min(...times) : NaN;
+      const lastTime = times.length ? Math.max(...times) : NaN;
+      const seconds = Number(activity.querySelector("TotalTimeSeconds")?.textContent) ||
+        (Number.isFinite(firstTime) && Number.isFinite(lastTime)
+          ? (lastTime - firstTime) / 1000 : 0);
+      const km = Number(activity.querySelector("DistanceMeters")?.textContent) / 1000 ||
+        (distances.length ? Math.max(...distances) / 1000 : 0);
+
+      if (!Number.isFinite(firstTime) || km <= 0) return null;
+
+      const date = new Date(firstTime).toISOString().slice(0, 10);
+      const duration = `${Math.floor(seconds / 3600)}:${String(Math.floor(seconds % 3600 / 60)).padStart(2, "0")}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
+      const paceSeconds = seconds / km;
+
+      return {
+        date,
+        type: "Outdoor Run",
+        name: `COROS Import ${date} #${i + 1}`,
+        km: Number(km.toFixed(3)),
+        duration,
+        pace: `${Math.floor(paceSeconds / 60)}:${String(Math.round(paceSeconds % 60)).padStart(2, "0")} /km`,
+        hr: hrs.length ? Math.round(hrs.reduce((a, b) => a + b, 0) / hrs.length) : null,
+        start: Math.floor(firstTime / 1000),
+        importKey: `${date}-${Math.round(firstTime / 1000)}-${Math.round(km * 1000)}`
+      };
+    }).filter(Boolean);
+  }
+
+  function parseGPX(text) {
+    const xml = new DOMParser().parseFromString(text, "application/xml");
+    if (xml.querySelector("parsererror")) throw new Error("File GPX tidak valid.");
+
+    const tracks = [...xml.querySelectorAll("trk")];
+    return tracks.map((track, i) => {
+      const points = [...track.querySelectorAll("trkpt")];
+      let km = 0;
+
+      const distance = (a, b) => {
+        const rad = x => x * Math.PI / 180;
+        const dLat = rad(b.lat - a.lat);
+        const dLon = rad(b.lon - a.lon);
+        const q = Math.sin(dLat / 2) ** 2 +
+          Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLon / 2) ** 2;
+        return 6371 * 2 * Math.atan2(Math.sqrt(q), Math.sqrt(1 - q));
+      };
+
+      const coords = points.map(p => ({
+        lat: Number(p.getAttribute("lat")),
+        lon: Number(p.getAttribute("lon")),
+        time: Date.parse(p.querySelector("time")?.textContent || "")
+      })).filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lon));
+
+      for (let j = 1; j < coords.length; j++) km += distance(coords[j - 1], coords[j]);
+
+      if (!coords.length || km <= 0) return null;
+
+      const times = coords.map(p => p.time).filter(Number.isFinite);
+      const firstTime = times.length ? Math.min(...times) : NaN;
+      const lastTime = times.length ? Math.max(...times) : NaN;
+      if (!Number.isFinite(firstTime) || !Number.isFinite(lastTime) || lastTime <= firstTime) return null;
+
+      const seconds = (lastTime - firstTime) / 1000;
+      const pace = seconds / km;
+      const date = new Date(firstTime).toISOString().slice(0, 10);
+
+      return {
+        date,
+        type: "Outdoor Run",
+        name: track.querySelector("name")?.textContent || `COROS GPX ${date} #${i + 1}`,
+        km: Number(km.toFixed(3)),
+        duration: `${Math.floor(seconds / 3600)}:${String(Math.floor(seconds % 3600 / 60)).padStart(2, "0")}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`,
+        pace: `${Math.floor(pace / 60)}:${String(Math.round(pace % 60)).padStart(2, "0")} /km`,
+        hr: null,
+        start: Math.floor(firstTime / 1000),
+        importKey: `${date}-${Math.floor(firstTime / 1000)}-${Math.round(km * 1000)}`
+      };
+    }).filter(Boolean);
+  }
+
+  function parseCSV(text) {
+    const rows = text.trim().split(/\r?\n/).map(line =>
+      line.split(",").map(value => value.trim().replace(/^"|"$/g, ""))
+    );
+    const headers = rows.shift().map(h => h.toLowerCase());
+    const get = (row, names) => {
+      const i = headers.findIndex(h => names.includes(h));
+      return i >= 0 ? row[i] : "";
+    };
+
+    return rows.map(row => {
+      const date = get(row, ["date", "tanggal"]);
+      const km = Number(get(row, ["km", "distance_km", "distance"]));
+      const duration = get(row, ["duration", "durasi"]);
+      const hrValue = get(row, ["hr", "average_hr", "avg_hr"]);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isFinite(km) || km <= 0) return null;
+      const seconds = duration.includes(":")
+        ? duration.split(":").map(Number).reduce((a, v) => a * 60 + v, 0)
+        : Number(duration);
+      const pace = seconds > 0 ? seconds / km : 0;
+      return {
+        date, km, duration: duration.includes(":") ? duration : "",
+        name: get(row, ["name", "activity", "nama"]) || "COROS CSV Import",
+        type: get(row, ["type", "jenis"]) || "Outdoor Run",
+        pace: pace ? `${Math.floor(pace / 60)}:${String(Math.round(pace % 60)).padStart(2, "0")} /km` : "—",
+        hr: hrValue && Number.isFinite(Number(hrValue)) ? Number(hrValue) : null,
+        start: Math.floor(new Date(date + "T12:00:00Z").getTime() / 1000),
+        importKey: `${date}-${km}-${duration}-${get(row, ["name", "activity", "nama"])}`
+      };
+    }).filter(Boolean);
+  }
+
+  button.addEventListener("click", async () => {
+    const file = input.files?.[0];
+    if (!file) {
+      status.textContent = "Pilih file terlebih dahulu.";
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      const ext = file.name.split(".").pop().toLowerCase();
+      let imported;
+
+      if (ext === "tcx") imported = parseTCX(text);
+      else if (ext === "gpx") imported = parseGPX(text);
+      else if (ext === "csv") imported = parseCSV(text);
+      else if (ext === "json") {
+        const parsed = JSON.parse(text);
+        imported = Array.isArray(parsed) ? parsed : parsed.activities;
+        if (!Array.isArray(imported)) throw new Error("JSON harus berupa daftar aktivitas.");
+      } else {
+        throw new Error("Format file belum didukung.");
+      }
+
+      const old = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+      const known = new Set(old.map(a => a.importKey || `${a.date}-${a.start}-${a.km}`));
+      const unique = imported.filter(a => {
+        const key = a.importKey || `${a.date}-${a.start}-${a.km}`;
+        if (known.has(key)) return false;
+        known.add(key);
+        return true;
+      });
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([...old, ...unique]));
+      dailyActivities.push(...unique);
+      dailyPage = 1;
+      renderDaily();
+
+      status.textContent = `${unique.length} aktivitas baru berhasil diimpor. Data tersimpan di browser ini.`;
+    } catch (error) {
+      console.error(error);
+      status.textContent = `Impor gagal: ${error.message}`;
+    }
+  });
+})();
+</script>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const log = $("coach-chat-log");
+  const status = $("coach-status");
+  const history = [];
+
+  
+function getActivities(days = 30) {
+  if (
+    typeof dailyActivities === "undefined" ||
+    !Array.isArray(dailyActivities)
+  ) {
+    return [];
+  }
+
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+
+  const cutoff = new Date();
+  cutoff.setHours(0, 0, 0, 0);
+  cutoff.setDate(cutoff.getDate() - (days - 1));
+
+  return dailyActivities
+    .filter((a) => {
+      if (!a.date) return false;
+
+      const date = new Date(`${a.date}T12:00:00`);
+      const km = Number(a.km);
+
+      return (
+        !Number.isNaN(date.getTime()) &&
+        date >= cutoff &&
+        date <= today &&
+        Number.isFinite(km) &&
+        km > 0
+      );
+    })
+    .sort((a, b) => {
+      const dateCompare = a.date.localeCompare(b.date);
+      if (dateCompare !== 0) return dateCompare;
+      return (Number(a.start) || 0) - (Number(b.start) || 0);
+    })
+    .slice(-100)
+    .map((a) => ({
+      date: a.date,
+      type: a.type || "Unknown",
+      name: a.name || a.type || "Run",
+      km: Number(a.km),
+      duration: a.duration || "",
+      pace: a.pace || "",
+      hr: Number.isFinite(Number(a.hr)) && a.hr !== ""
+        ? Number(a.hr)
+        : null,
+      rpe: a.rpe || "",
+      start: Number(a.start) || null
+    }));
+}
+
+function getActivitySummary(activities, days = 30) {
+  const distances = activities
+    .map((a) => Number(a.km))
+    .filter((km) => Number.isFinite(km) && km > 0);
+
+  const totalKm = distances.reduce((sum, km) => sum + km, 0);
+
+  const durations = activities
+    .map((a) => {
+      if (!a.duration) return null;
+
+      const parts = String(a.duration).split(":").map(Number);
+      if (
+        parts.length < 2 ||
+        parts.some((n) => !Number.isFinite(n) || n < 0)
+      ) {
+        return null;
+      }
+
+      if (parts.length === 3) {
+        return parts[0] * 3600 + parts[1] * 60 + parts[2];
+      }
+
+      return parts[0] * 60 + parts[1];
+    })
+    .filter((seconds) => seconds !== null);
+
+  const longestRun = activities.reduce(
+    (longest, a) => Number(a.km) > Number(longest?.km || 0) ? a : longest,
+    null
+  );
+
+  const dates = activities
+    .map((a) => a.date)
+    .filter(Boolean)
+    .sort();
+
+  const typeCounts = {};
+  for (const a of activities) {
+    const type = a.type || "Unknown";
+    typeCounts[type] = (typeCounts[type] || 0) + 1;
+  }
+
+  return {
+    periodDays: days,
+    activityCount: activities.length,
+    totalKm: Number(totalKm.toFixed(2)),
+    averageKmPerActivity: activities.length
+      ? Number((totalKm / activities.length).toFixed(2))
+      : 0,
+    earliestDate: dates[0] || null,
+    latestDate: dates[dates.length - 1] || null,
+    longestRun: longestRun
+      ? { date: longestRun.date, name: longestRun.name, km: Number(longestRun.km) }
+      : null,
+    activitiesWithDuration: durations.length,
+    totalDurationSeconds: durations.length
+      ? durations.reduce((sum, seconds) => sum + seconds, 0)
+      : null,
+    typeCounts
+  };
+}
+
+ 
+
+  function showMessage(label, content) {
+    const item = document.createElement("div");
+    item.style.cssText =
+      "padding:10px;margin:8px 0;border:1px solid #ddd;border-radius:10px;white-space:pre-wrap";
+    const title = document.createElement("strong");
+    title.textContent = label;
+    const text = document.createElement("p");
+    text.textContent = content;
+    text.style.marginBottom = "0";
+    item.append(title, text);
+    log.appendChild(item);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  async function ask(mode) {
+    const message = mode === "weekly"
+      ? "Evaluasi aktivitas lari tujuh hari terakhir. Hitung ringkasan dari data yang tersedia, jelaskan hal positif dan risiko, lalu rekomendasikan penyesuaian latihan tujuh hari berikutnya. Jangan mengarang data yang tidak tersedia."
+      : $("coach-message").value.trim();
+
+    const accessCode = $("coach-access-code").value;
+
+    if (!accessCode) {
+      status.textContent = "Masukkan kode akses coach terlebih dahulu.";
+      return;
+    }
+    if (!message) {
+      status.textContent = "Tulis pertanyaan terlebih dahulu.";
+      return;
+    }
+
+    const userMessage = { role: "user", content: message };
+    showMessage("Kamu", message);
+    $("coach-message").value = "";
+    status.textContent = "AI sedang menganalisis...";
+    $("coach-send").disabled = true;
+    $("coach-weekly").disabled = true;
+
+    try {
+      
+      const periodDays = mode === "weekly" ? 7 : 30;
+      const activities = getActivities(periodDays);
+      const summary = getActivitySummary(activities, periodDays);
+
+      const response = await fetch("/api/ai-coach", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          accessCode,
+          mode,
+          message,
+          history: history.slice(-10),
+          activities,
+          summary
+        })
+      });
+
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Permintaan AI gagal.");
+      }
+
+      showMessage("AI Coach", result.answer);
+      history.push(userMessage, {
+        role: "assistant",
+        content: result.answer
+      });
+      status.textContent = "Selesai.";
+    } catch (error) {
+      status.textContent = "Gagal: " + error.message;
+    } finally {
+      $("coach-send").disabled = false;
+      $("coach-weekly").disabled = false;
+    }
+  }
+
+  const sendButton = document.getElementById("coach-send");
+  const weeklyButton = document.getElementById("coach-weekly");
+
+  if (sendButton && weeklyButton) {
+    sendButton.addEventListener("click", () => ask("chat"));
+    weeklyButton.addEventListener("click", () => ask("weekly"));
+    console.log("AI Coach: event tombol berhasil dipasang.");
+  } else {
+    console.error("AI Coach: tombol tidak ditemukan.");
+  }
+})();
+</script>
+</body></html>
